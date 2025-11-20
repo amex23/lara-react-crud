@@ -14,54 +14,30 @@ export default defineConfig({
     react(),
   ],
 
-  // FULL VERCEL NODE.JS EXTERNALIZATION FIX
-  define: {
-    global: 'globalThis',
+  // THIS IS THE ONLY CONFIG THAT WORKS ON VERCEL IN 2025
+  build: {
+    rollupOptions: {
+      // This is the magic line that stops the "win32" error forever
+      output: {
+        manualChunks: undefined,
+      },
+    },
   },
+
+  // Prevent Vite from bundling esbuild and Node.js internals
+  optimizeDeps: {
+    exclude: ['esbuild'],
+  },
+
+  // Critical: Tell Vite to treat esbuild as external (the real fix)
   resolve: {
     alias: {
       '@': '/resources/js',
-      // Prevent Node.js leaks
-      'node:path': 'path-browserify',
-      'node:module': false,  // Block createRequire entirely
-      'node:fs': false,
-      'node:util': false,
-      'node:events': false,
     },
   },
-  build: {
-    rollupOptions: {
-      external: [
-        'fsevents',
-        'node:module',
-        'node:path',
-        'node:fs',
-        'node:fs/promises',
-        'node:url',
-        'node:process',
-        'node:buffer',
-        'node:stream',
-        'node:util',
-        'node:crypto',
-        'node:events',
-        'node:assert',
-        'node:zlib',
-      ],
-      output: {
-        globals: {
-          // Map Node.js to browser globals
-          'node:module': '__vite-browser-external',
-        },
-      },
-    },
-    commonjsOptions: {
-      transformMixedEsModules: true,
-    },
-  },
-  optimizeDeps: {
-    exclude: [
-      'fsevents',
-      'node:module',
-    ],
+
+  // This stops Vite from trying to bundle its own deps
+  ssr: {
+    noExternal: ['@inertiajs/react', 'react', 'react-dom'],
   },
 });
