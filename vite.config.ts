@@ -1,28 +1,25 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
     plugins: [
         laravel({
-            input: 'resources/js/app.tsx',
+            input: [
+                'resources/css/app.css',
+                'resources/js/app.tsx',
+            ],
             refresh: true,
         }),
         react(),
     ],
-    resolve: {
-        alias: {
-            '@': '/resources/js',
-        },
-    },
-    // THIS IS THE FIX FOR VERCEL
+    // Fix for Vercel + fsevents/Rollup errors
     build: {
         rollupOptions: {
-            external: ['fsevents'], // ← this line fixes your exact error
+            external: ['fsevents'],  // ← This excludes the macOS module
         },
     },
-    // This prevents node built-ins from being bundled
     optimizeDeps: {
-        exclude: ['fsevents'],
+        exclude: ['fsevents'],  // ← Prevent pre-bundling issues
     },
 });
